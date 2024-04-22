@@ -1,56 +1,70 @@
-import { useContext } from "react";
-import "./comments.scss"
-import {AuthContext} from "../../context/authContext"
+import { useContext, useState } from "react";
+import "./comments.scss";
+import { AuthContext } from "../../context/authContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { makeRequest } from "../../axios";
+import moment from "moment";
 
+const Comments = ({ postId }) => {
+  const [desc, setDesc] = useState("");
+  const { currentUser } = useContext(AuthContext);
 
-const Comments = () => {
+  const { isLoading, error, data } = useQuery(["comments"], () =>
+    makeRequest.get("/comments?postId=" + postId).then((res) => {
+      return res.data;
+    })
+  );
 
-    const {currentUser} = useContext(AuthContext)
+  const queryClient = useQueryClient();
 
-    const comments = [
-        {
-            id: 1,
-            desc: "Wow! Can You tell a little bit more what you can do there?",
-            name: "John Sparrow",
-            useId: 1,
-            profilePicture: "https://img.hotimg.com/167ae4065bd58e4aaf3f9776a1e74db5.jpeg",
-        },
-        {
-            id: 2,
-            desc: "It is very interesting!",
-            name: "Kate Brown",
-            useId: 2,
-            profilePicture: "https://img.hotimg.com/41bfb1f54b134e0056d4f0ea1c824649.jpeg",
-        },
-        {
-            id: 3,
-            desc: "I would love to go there too!",
-            name: "Jane Cooper",
-            useId: 3,
-            profilePicture: "https://img.hotimg.com/IMG_31219074a92e8836b785.jpeg",
-        },
-    ];
+  const mutation = useMutation(
+    (newComment) => {
+      return makeRequest.post("/comments", newComment);
+    },
+    {
+      onSuccess: () => {
+        // Invalidate and refetch
+        queryClient.invalidateQueries(["comments"]);
+      },
+    }
+  );
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    mutation.mutate({ desc, postId });
+    setDesc("");
+  };
 
   return (
     <div className="comments">
-        <div className="write">
-            <img src={currentUser.profilePic} alt="" />
-            <input type="text" placeholder="write a comment" />
-            <button>Send</button>
-        </div>
-        {comments.map(comment=>(
+      <div className="write">
+        <img src={"/upload/" + currentUser.profilePic} alt="" />
+        <input
+          type="text"
+          placeholder="write a comment"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+        />
+        <button onClick={handleClick}>Send</button>
+      </div>
+      {error
+        ? "Something went wrong"
+        : isLoading
+        ? "loading"
+        : data.map((comment) => (
             <div className="comment">
-                <img src={comment.profilePicture} alt="" />
-                <div className="info">
-                    <span>{comment.name}</span>
-                    <p>{comment.desc}</p>
-                </div>
-                <span className="date">1 hour ago</span>
+              <img src={"/upload/" + comment.profilePic} alt="" />
+              <div className="info">
+                <span>{comment.name}</span>
+                <p>{comment.desc}</p>
+              </div>
+              <span className="date">
+                {moment(comment.createdAt).fromNow()}
+              </span>
             </div>
-        ))
-    }
+          ))}
     </div>
-  )
-}
+  );
+};
 
-export default Comments
+export default Comments;

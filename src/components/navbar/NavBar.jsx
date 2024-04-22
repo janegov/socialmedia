@@ -22,7 +22,7 @@ const NavBar = () => {
         <MenuIcon />
         <div className="search">
           <SearchIcon/>
-          <input type="text" placeholder='search' />
+          <input type="text" placeholder='Search ...' />
         </div>
       </div>
       <div className="right">
@@ -30,7 +30,8 @@ const NavBar = () => {
         <EmailOutlinedIcon />
         <NotificationsOutlinedIcon />
         <div className="user">
-          <img src={currentUser.profilePic} alt=""/>
+          <img 
+            src={"/upload" + currentUser.profilePic} alt=""/>
           <span>{currentUser.name}</span>
         </div>
       </div>

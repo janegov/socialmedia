@@ -15,25 +15,33 @@ import RightBar from "./components/rightBar/RightBar";
 import Profile from "./pages/profile/Profile";
 import { useContext } from "react";
 import { AuthContext } from "./context/authContext";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query'
 
 
 function App() {
 
   const {currentUser} = useContext(AuthContext);
 
+  const queryClient = new QueryClient()
+
 
   const Layout = () => {
     return(
-      <div>
-        <NavBar/>
-        <div style={{display: "flex"}}>
-          <LeftBar/>
-          <div style={{flex:6}}>
-           <Outlet/>
+      <QueryClientProvider client={queryClient}>
+        <div>
+          <NavBar/>
+          <div style={{display: "flex"}}>
+            <LeftBar/>
+            <div style={{flex:6}}>
+             <Outlet/>
+            </div>
+            <RightBar/>
           </div>
-          <RightBar/>
         </div>
-      </div>
+      </QueryClientProvider>
     );
   };
 
